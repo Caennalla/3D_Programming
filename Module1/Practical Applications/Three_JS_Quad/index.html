@@ -1,0 +1,106 @@
+<!doctype html>
+
+<html>
+
+      <head>
+
+            <title>Three.js Red Quad</title>
+
+            <style>
+                    body{ background-color: grey; }
+                    canvas{ background-color: white; }
+            </style>
+
+            <script src="three.min.js"></script>
+            <script>
+					//Required variables
+					var	CANVAS_WIDTH = 400,
+						CANVAS_HEIGHT= 300;
+
+					var	renderer = null,
+						scene = null,      
+						camera = null;    
+					//Sort of main function, which calls all the necessary setups and finally the render call
+                    function initWebGL(){
+						setupRenderer();
+						setupScene();
+						setupCamera();
+						renderer.render(scene, camera);
+                    }
+					
+					//WebGL Renderer setup
+                    function setupRenderer(){
+						//Assignment was to use WebGL Renderer, so no fallback option is made
+						
+						renderer = new THREE.WebGLRenderer();
+						renderer.setSize( CANVAS_WIDTH, CANVAS_HEIGHT );
+						var myColor = new THREE.Color(0x999999);
+						renderer.setClearColor(myColor, 1.0);
+						document.body.appendChild( renderer.domElement );
+                    }
+					//Scene setup
+                    function setupScene(){
+						scene = new THREE.Scene();
+						addMesh();
+                    }
+					//Camera setup
+                    function setupCamera(){
+
+						camera = new THREE.PerspectiveCamera(
+						45,                              
+						CANVAS_WIDTH / CANVAS_HEIGHT,   
+						.1,                            
+						10000                         
+						);
+						//Camera is set behind enough so that we can see the quad
+						camera.position.set( 0, 0, -3 );
+						camera.lookAt( scene.position );
+						scene.add( camera );
+                    }
+
+                    function addMesh(){
+						//First positions, two triangles that form a quad
+						var quadVertices = [
+							-0.5,0.5,0.0,
+							0.5,0.5,0.0,
+							0.5,-0.5,0.0,
+							
+							-0.5,0.5,0.0,
+							-0.5,-0.5,0.0,
+							0.5,-0.5,0.0
+						];
+						
+						//Create the geometry object for storing our data
+						var geometry = new THREE.Geometry();
+						//Here we will put positional data in to vertices array
+						for(var i = 0; i < quadVertices.length; i += 3){
+							var vertex = new THREE.Vector3(
+												quadVertices[i],
+												quadVertices[i+1],
+												quadVertices[i+2]
+										);
+							geometry.vertices.push(vertex);
+						}
+						
+						//Push to faces the correct index ordering
+						geometry.faces.push(new THREE.Face4(0,1,2));
+						geometry.faces.push(new THREE.Face4(3,5,4));
+						
+					
+						//Create the mesh with given data, red color
+						var mesh = new THREE.Mesh(
+							geometry,
+							new THREE.MeshBasicMaterial({color: 0xfd0000})
+							);
+						//Add the mesh in to the scene
+						scene.add(mesh);
+                    }
+					
+
+            </script>
+
+      </head>
+
+      <body onload="initWebGL()"></body>
+
+</html>

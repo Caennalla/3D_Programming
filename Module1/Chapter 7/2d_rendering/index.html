@@ -1,0 +1,142 @@
+<!doctype html>
+
+<html>
+
+      <head>
+
+            <title>Three.js Custom 2D Mesh</title>
+
+            <style>
+                    body{ background-color: grey; }
+                    canvas{ background-color: white; }
+            </style>
+
+            <script src="three.min.js"></script>
+            <script>
+
+					var	CANVAS_WIDTH = 400,
+						CANVAS_HEIGHT= 300;
+
+					var	renderer = null,     //WebGL or 2D
+						scene = null,      //scene object
+						camera = null;    //camera object
+
+                    function initWebGL(){
+						setupRenderer();
+						setupScene();
+						setupCamera();
+						renderer.render(scene, camera);
+                    }
+
+                    function setupRenderer(){
+						//Added option to fallback to 2D Canvas, if WebGL is not possible
+						var test_canvas = document.createElement('canvas');
+						var gl = null;
+						try{
+							gl = (test_canvas.getContext("webgl") || test_canvas.getContext("experimental-webgl"));
+						}catch(e){
+						}
+						if(gl){
+							renderer = new THREE.WebGLRenderer();
+						}
+						else{
+							renderer = new THREE.CanvasRenderer();
+						}
+						
+						test_canvas = undefined;
+						
+						renderer.setSize( CANVAS_WIDTH, CANVAS_HEIGHT );
+						var myColor = new THREE.Color(0x999999);
+						renderer.setClearColor(myColor, 1.0);
+						document.body.appendChild( renderer.domElement );
+                    }
+
+                    function setupScene(){
+						scene = new THREE.Scene();
+						addMesh();
+						
+                    }
+
+                    function setupCamera(){
+
+						camera = new THREE.PerspectiveCamera(
+						35,                              // Field of view
+						CANVAS_WIDTH / CANVAS_HEIGHT,   // Aspect ratio
+						.1,                            // Near clip plane
+						10000                         // Far clip plane
+						);
+						camera.position.set( 0, 0, -3 );
+						camera.lookAt( scene.position );
+						scene.add( camera );
+                    }
+
+                    function addMesh(){
+						//First positions
+						var triangleVertices = [
+							-0.5,0.5,0.0,
+							0.0,0.0,0.0,
+							-0.5,-0.5,0.0,
+							
+							0.5,0.5,0.0,
+							0.0,0.0,0.0,
+							0.5,-0.5,0.0
+						];
+						//Color values
+						var triangleVerticeColors = [
+							1.0,0.0,0.0,
+							1.0,1.0,1.0,
+							1.0,0.0,0.0,
+							
+							0.0,0.0,0.0,
+							0.0,0.0,1.0,
+							1.0,1.0,1.0,
+						];
+						//Here we will put positional data and colors per vertex to correct arrays
+						var geometry = new THREE.Geometry();
+						var colors = [];
+						for(var i = 0; i < triangleVertices.length; i += 3){
+							var vertex = new THREE.Vector3(
+												triangleVertices[i],
+												triangleVertices[i+1],
+												triangleVertices[i+2]
+										);
+							geometry.vertices.push(vertex);
+							
+							var color = new THREE.Color();
+							color.setRGB(
+								triangleVerticeColors[i],
+								triangleVerticeColors[i+1],
+								triangleVerticeColors[i+2]
+							);
+							colors.push(color);
+						}
+						
+						//Push to faces the correct vertex ordering
+						geometry.faces.push(new THREE.Face3(0,1,2));
+						geometry.faces.push(new THREE.Face3(3,5,4));
+						
+						//Push the correct color per vertex in faces array
+						var f = 0;
+						for(var i = 0; i < colors.length; i+=3){
+							geometry.faces[f].vertexColors.push(colors[i]);
+							geometry.faces[f].vertexColors.push(colors[i+1]);
+							geometry.faces[f].vertexColors.push(colors[i+2]);
+							++f;
+						}
+						//Create the mesh with given data
+						var mesh = new THREE.Mesh(
+							geometry,
+							new THREE.MeshBasicMaterial({vertexColors: THREE.VertexColors})
+							);
+						//Add the mesh in to the scene
+						scene.add(mesh);
+                    }
+					
+
+            </script>
+
+      </head>
+
+      <body onload="initWebGL()"></body>
+
+</html>

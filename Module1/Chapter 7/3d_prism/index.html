@@ -1,0 +1,234 @@
+<!doctype html>
+
+<html>
+
+      <head>
+
+            <title>Three.js 3D Prism</title>
+
+            <style>
+                    body{ background-color: grey; }
+                    canvas{ background-color: white; }
+            </style>
+
+            <script src="three.min.js"></script>
+            <script>
+
+					var	CANVAS_WIDTH = 400,
+						CANVAS_HEIGHT= 300;
+
+					var	renderer = null,     //WebGL or 2D
+						scene = null,      //scene object
+						camera = null;    //camera object
+					//For this example, these had to be made globally available
+					var mesh = null,
+						geometry = null,
+						triangleVertices = [];
+						angle = 0;
+						
+                    function initWebGL(){
+						setupRenderer();
+						setupScene();
+						setupCamera();
+						//Original x value of the mesh is stored for later use
+						var original_mesh_x = mesh.position.x;
+						
+						(function animLoop(){
+							//This makes the mesh to rotate around Y-axis
+							mesh.position.x = original_mesh_x + 2.0*Math.cos(angle);
+							mesh.rotation.y = angle;
+							angle += 0.05;
+							
+							renderer.render(scene, camera);
+							requestAnimationFrame(animLoop);
+						})();
+                    }
+
+                    function setupRenderer(){
+						//Added option to fallback to 2D Canvas, if WebGL is not possible
+						var test_canvas = document.createElement('canvas');
+						var gl = null;
+						try{
+							gl = (test_canvas.getContext("webgl") || test_canvas.getContext("experimental-webgl"));
+						}catch(e){
+						}
+						if(gl){
+							renderer = new THREE.WebGLRenderer();
+						}
+						else{
+							renderer = new THREE.CanvasRenderer();
+						}
+						
+						test_canvas = undefined;
+						
+						renderer.setSize( CANVAS_WIDTH, CANVAS_HEIGHT );
+						var myColor = new THREE.Color(0x999999);
+						renderer.setClearColor(myColor, 1.0);
+						document.body.appendChild( renderer.domElement );
+                    }
+
+                    function setupScene(){
+						scene = new THREE.Scene();
+						addMesh();
+						
+                    }
+
+                    function setupCamera(){
+
+						camera = new THREE.PerspectiveCamera(
+						35,                              // Field of view
+						CANVAS_WIDTH / CANVAS_HEIGHT,   // Aspect ratio
+						.1,                            // Near clip plane
+						10000                         // Far clip plane
+						);
+						camera.position.set( 0, 0, -10 );
+						camera.lookAt( scene.position );
+						scene.add( camera );
+                    }
+
+                    function addMesh(){
+						//this data is the same as in Module1\First 3d_with depth test\3d_scripts.js
+						//Data for color buffer
+						var triangleVerticeColors = [
+							//front face
+
+							0.0, 0.0, 1.0,
+							1.0, 1.0, 1.0,
+							0.0, 0.0, 1.0,
+							0.0, 0.0, 1.0,
+							0.0, 0.0, 1.0,
+							1.0, 1.0, 1.0,
+
+							//rear face
+
+							0.0, 1.0, 1.0,
+							1.0, 1.0, 1.0,
+							0.0, 1.0, 1.0,
+							0.0, 1.0, 1.0,
+							0.0, 1.0, 1.0,
+							1.0, 1.0, 1.0
+						];
+						
+						//Data for vector positions
+						
+						var triangleVertices = [
+
+							//front face
+							//bottom left to right, to top
+							0.0, 0.0, 0.0,
+							1.0, 0.0, 0.0,
+							2.0, 0.0, 0.0,
+							0.5, 1.0, 0.0,
+							1.5, 1.0, 0.0,
+							1.0, 2.0, 0.0,
+
+							//rear face
+							0.0, 0.0, -2.0,
+							1.0, 0.0, -2.0,
+							2.0, 0.0, -2.0,
+							0.5, 1.0, -2.0,
+							1.5, 1.0, -2.0,
+							1.0, 2.0, -2.0
+						];
+						
+						//Data to vertice buffers, compared to original some of the index positions are "flipped"
+						var triangleVertexIndices = [
+
+							//front face
+							0,1,3,
+							1,4,3, //Flip
+							1,2,4,
+							3,4,5,
+
+							//rear face
+							6,7,9,
+							7,10,9, //Flip
+							7,8,10,
+							9,10,11,
+
+							//left side
+							0,6,3, //Flip
+							3,6,9,
+							3,9,5, //Flip
+							5,9,11,
+
+							//right side
+							2,8,4, //Flip
+							4,8,10,
+							4,10,5, //Flip
+							5,10,11,
+
+
+						];
+						
+						//Here we will put positional data and colors per vertex to correct arrays
+						geometry = new THREE.Geometry();
+						//This line defines that values in geometry can change dynamically
+						geometry.dynamic = true;
+						
+						var colors = [];
+						for(var i = 0; i < triangleVertexIndices.length; i += 3){
+							var vertex = new THREE.Vector3(
+												triangleVertices[i],
+												triangleVertices[i+1],
+												triangleVertices[i+2]
+										);
+							geometry.vertices.push(vertex);
+							
+							var color = new THREE.Color();
+							color.setRGB(
+								triangleVerticeColors[i],
+								triangleVerticeColors[i+1],
+								triangleVerticeColors[i+2]
+							);
+							colors.push(color);
+						}
+						//Add the positions to faces array
+						for(var i = 0; i<triangleVertexIndices.length; i+=3){
+							geometry.faces.push(new THREE.Face3(
+								triangleVertexIndices[i],
+								triangleVertexIndices[i+1],
+								triangleVertexIndices[i+2]
+							
+							));
+						}
+						
+						//Push the correct color per vertex in faces array
+						var f = 0;
+						for(var i = 0; i < triangleVertexIndices.length; i+=3){
+							geometry.faces[f].vertexColors.push(colors[triangleVertexIndices[i]]);
+							geometry.faces[f].vertexColors.push(colors[triangleVertexIndices[i+1]]);
+							geometry.faces[f].vertexColors.push(colors[triangleVertexIndices[i+2]]);
+							++f;
+						}
+						//Create the mesh with given data, DoubleSide is on to make model "full"
+						mesh = new THREE.Mesh(
+							geometry,
+							new THREE.MeshBasicMaterial({vertexColors: THREE.VertexColors,
+														side:THREE.DoubleSide})
+							);
+							
+						//Add the mesh in to the scene
+						scene.add(mesh);
+                    }
+					
+					//This function updates the x values of each vertex
+					function updateGeometry(){
+						var x_translation = Math.sin(angle)/2.0;
+						
+						for(var i = 0; i < geometry.vertices.length; i++){
+							geometry.vertices[i].x = triangleVertices[i*3] + x_translation;
+						}
+						angle+=0.01;
+						//This line tells that vertex values will need updating during runtime
+						geometry.verticesNeedUpdate = true;
+					}
+					
+
+            </script>
+
+      </head>
+
+      <body onload="initWebGL()"></body>
+
+</html>
