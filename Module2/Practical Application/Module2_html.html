@@ -1,0 +1,109 @@
+<!--
+//Juho Roivas - 1201116
+//3d-programming module 2
+//html file, with shaders
+-->
+
+<!doctype html>
+
+<html>
+       <head>
+                <title>Module 2 practical application</title>
+                <style>
+
+                       body{ background-color: grey; }
+
+                       canvas{ background-color: white; }
+                </style>
+				
+                <script id="shader-vs" type="x-shader/x-vertex">
+						
+						//Attribute for index number, used for angle calculation
+						attribute float aIndexNumber;
+						
+						//Varying variables for passing them forward, angle is stored in degrees and later converted
+						//varying vec4 vColor;
+						varying float vAngle;
+						//Uniform for radius
+						uniform float uRadius;
+											
+						//This calculates the data for vertex positions
+						vec4 transformPosition(float vAngle){
+						
+							vec4 positionData = vec4(0.0, 0.0, 0.0, 1.0);
+							
+							positionData.x = cos(radians(vAngle)) * uRadius;
+							positionData.y = sin(radians(vAngle)) * uRadius;
+						
+							return positionData;
+						} 
+						
+						/*/This calculates the data for vertex positions
+						// This version, and the commented variables are for testing this function
+						// by running it in vertex shader
+						vec4 transformColor(float vAngle){
+							
+							vec4 colorData = vec4(0.0, 0.0, 0.0, 1.0);
+							
+							colorData.r = cos(radians(vAngle));
+							colorData.b = sin(radians(vAngle));
+							colorData.g = tan(radians(vAngle));
+							colorData.a = 1.0;
+						
+							return colorData;
+						} /*/
+						
+                        void main(void) {
+							gl_PointSize = 4.0;
+							vAngle = aIndexNumber * 22.5;
+                            gl_Position = transformPosition(vAngle);
+                        }
+                </script>
+
+                <script id="shader-fs" type="x-shader/x-fragment">
+						precision highp float;
+						//varying vec4 vColor;
+						varying float vAngle;
+						
+						//This calculates the data for vertex positions
+						vec4 transformColor(float vAngle){
+							
+							vec4 colorData = vec4(0.0, 0.0, 0.0, 1.0);
+							
+							colorData.r = sin(radians(vAngle));
+							colorData.b = cos(radians(vAngle));
+							colorData.g = tan(radians(vAngle));
+							colorData.a = 1.0;
+						
+							return colorData;
+						} 
+						
+                        void main(void) {
+
+                             gl_FragColor = transformColor(vAngle);
+
+                        }
+                </script>
+
+                <script src="Module2_scripts.js"></script>
+
+       </head>
+
+       <body onload="initWebGL(0)">
+			<form>
+				<p>Juho Roivas</p>
+				<p>3D- Programming - Module 2</p>
+				<p>Choose the rendering style:</p>
+				<input type="radio" name="drawstyle" onclick="initWebGL(0)"> Polygon<br>
+				<input type="radio" name="drawstyle" onclick="initWebGL(1)"> Line loop<br>
+				<input type="radio" name="drawstyle" onclick="initWebGL(2)"> Points
+			</form> 
+            <canvas id="my-canvas" width="400" height="300">
+
+            
+
+            </canvas>
+
+       </body>
+
+</html>
