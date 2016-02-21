@@ -1,0 +1,62 @@
+<!--
+/// Juho Roivas - 1201116
+///	3D Programming Basics
+/// Module 3
+-->
+
+<!doctype html>
+
+<html>
+       <head>
+                <title>Module 3</title>
+                <style>
+
+                       body{ background-color: grey; }
+
+                       canvas{ background-color: white; }
+                </style>
+				
+				<script src="gl-matrix-min.js"></script>
+				
+                <script id="shader-vs" type="x-shader/x-vertex">
+
+                        attribute vec3 aVertexPosition;
+						
+						uniform mat4 uMVMatrix;
+						uniform mat4 uPMatrix;
+						
+						varying vec3 vTextureCoord;
+						
+                        void main(void) {
+
+                            gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+							//Because we are using indeces, vertex positions are also texture positions
+							vTextureCoord = aVertexPosition;
+                        }
+                </script>
+
+                <script id="shader-fs" type="x-shader/x-fragment">
+				precision highp float;
+				varying vec3 vTextureCoord;
+				uniform samplerCube uSampler;
+
+				void main(void) {
+					gl_FragColor = textureCube(uSampler, vTextureCoord, 1.0);
+				}
+                </script>
+
+                <script src="Module3_js.js"></script>
+
+       </head>
+
+       <body onload="initWebGL()">
+
+            <canvas id="my-canvas" width="400" height="300">
+
+            Your browser does not support the HTML5 canvas element.
+
+            </canvas>
+
+       </body>
+
+</html>
