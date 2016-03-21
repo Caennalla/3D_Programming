@@ -188,10 +188,10 @@ $(function(){
 				}
 		}
 			
-    });
+    }); 
 	
-	
-	/*/Version 2 using lights:true, and merging the lights library to fill all required values
+	/*/
+	//Version 2 using lights:true, and merging the lights library to fill all required values
 	//This turns textures black for some reason
 	//Custom shader, using the example code as basis
     var customPhongShader = new THREE.ShaderMaterial({
@@ -225,37 +225,34 @@ $(function(){
 					
 				},
 				// Position data for spotlight
-				"spotLights[0].direction": {
+				"spotLights[0].position": {
 					type: 'v3',
 					value: spotLight.position
 				},
 				// Color data for spotlight
-				"spotlight.color": {
+				"spotLights[0].color": {
 					type: 'v4',
-					value: colorToVec4(spotLight.color)
+					value: spotLight.color
 					
 				},
-				// Angle data for spotlight
-				"spotlight.angle": {
+				// Angle data for spotlight, not sure if this is the correct one
+				"spotLights[0].coneCos": {
 					type: 'f',
 					value: spotLight.angle
 				},
-				// Color data for spotlight
-				"spotlight.exponent": {
-					type: 'f',
-					value: spotLight.exponent
-					
-				},
 				//
-				"spotlight.distance": {
+				"spotLights[0].distance": {
 					type: 'f',
 					value: spotLight.distance
 					
 				},
-				"spotlight.target":{
+				"spotLights[0].direction":{
 					type: 'v3',
-					//It is pointing to 0,0,0
 					value: new THREE.Vector3(0,0,0)
+				},
+				"spotLights[0].decay":{
+					type: 'f',
+					value: spotLight.exponent
 					
 				}
 			}])
