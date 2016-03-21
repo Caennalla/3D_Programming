@@ -1,0 +1,103 @@
+<?doctype HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./lib/jquery-1.9.1.min.js"></script>
+  <script src="./lib/three.js"></script>
+  <script src="./lib/d3.v3.js"></script>
+  <script src="scene.js"></script>
+  <!-- vertex shader for custom lighting --->
+  <script id="light-vs" type="x-shader/x-vertex">
+    // light struct
+    struct Light {
+       vec3 pos;
+	   vec4 color;
+	   vec3 target;
+	   float angle;
+	   float distance;
+	   float exponent;
+    };
+
+    // global ambient
+    uniform vec4  u_ambient;
+
+    // our directional light 
+    uniform Light dirlight;
+	
+	// our spotlight
+	uniform Light spotlight;
+    
+    varying vec2 v_uv;    
+    varying vec4 v_color;
+	
+	//Ambient light 
+	varying vec4 ambientLight;
+	//Directional light
+	varying vec3 directLightPosition;
+	varying vec4 directLightColor; 	
+	
+	//Normal of this vertex
+	varying vec3 outNormal;
+
+
+    void main() {
+
+		v_color = vec4(1);
+		//Normalize light position, we can do it here because the position of light won't change
+		directLightPosition = normalize(dirlight.pos);
+		directLightColor = dirlight.color;
+		
+		ambientLight = u_ambient;
+		
+        // pass texcoords
+        v_uv    = uv;
+		// Normalize by using world coordinates
+		outNormal = normalize(modelMatrix * vec4(normal, 1.0)).xyz;
+        // compute vertex position 
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1);
+    
+    }
+
+  </script>
+  <!-- fragment shader for custom lighting --->
+  <script id="light-fs" type="x-shader/x-fragment">
+
+    uniform sampler2D map;
+
+    varying vec2 v_uv;
+    varying vec4 v_color;
+	
+	//Ambient light 
+	varying vec4 ambientLight;
+	
+	//Directional light
+	
+	varying vec3 directLightPosition;
+	varying vec4 directLightColor; 	
+	
+	//Original normal according to world coordinates
+	varying vec3 outNormal;
+
+    
+    void main(){
+		//Variable in which we store the computed color
+		vec4 LightAmount;
+		//Normalized value in this fragment
+		vec3 fragmentNormal = normalize(outNormal);	
+		
+		//Directional lights intensity
+		float intensity = max(dot(fragmentNormal, directLightPosition), 0.0);
+
+		LightAmount = (intensity * directLightColor) + ambientLight;
+		
+		
+		// combine texel color with received color from vertex shader
+		gl_FragColor = texture2D(map, v_uv) * LightAmount;
+    }
+  </script>
+</head>
+<body>
+<div id="main" width="800" height="600"></div>
+<div id="fps" style="position:absolute;width:100px;height:50px;top:10px; left:10px;"></div>
+</body>
+</html>
