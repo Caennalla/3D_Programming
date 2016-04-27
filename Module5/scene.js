@@ -60,6 +60,8 @@ $(function(){
 
     // create camera
     camera = new THREE.PerspectiveCamera( viewAngle, aspect, near, far);
+	
+	// camera = new THREE.OrthographicCamera(width / - 2, width / 2, height / 2, height / - 2, near, far);
 
     // create scene
     scene = new THREE.Scene();
@@ -102,6 +104,8 @@ $(function(){
 	
     spotLight.exponent = 50;
     spotLight.angle = 0.21;
+	spotLight.decay = 0.1;
+	
     scene.add( spotLight );
 	
 	var spotLightHelper = new THREE.SpotLightHelper( spotLight );
@@ -153,7 +157,7 @@ $(function(){
 					
 				},
 				// Position data for spotlight
-				"spotlight.direction": {
+				"spotlight.pos": {
 					type: 'v3',
 					value: spotLight.position
 				},
@@ -174,16 +178,29 @@ $(function(){
 					value: spotLight.exponent
 					
 				},
-				//
+				// Distance data for spotlight
 				"spotlight.distance": {
 					type: 'f',
 					value: spotLight.distance
 					
 				},
+				// Target vector for spotlight
 				"spotlight.target":{
 					type: 'v3',
 					//It is pointing to 0,0,0
 					value: new THREE.Vector3(0,0,0)
+					
+				},
+				// Decay value for spotlight
+				"spotlight.decay":{
+					type: 'f',
+					value: spotLight.decay
+					
+				},
+				// Intensity data for spotlight
+				"spotlight.intensity":{
+					type: "f",
+					value: intensity
 					
 				}
 		}
@@ -285,11 +302,11 @@ $(function(){
 	    ruins[3].position.z = -13;
 	}
     }
-    loader.load("meshes/ruins30.js", handler);    
-    loader.load("meshes/ruins31.js", handler);
-    loader.load("meshes/ruins33.js", handler);
-    loader.load("meshes/ruins34.js", handler); 
-    loader.load("meshes/ruins35.js", handler);
+    loader.load("./meshes/ruins30.js", handler);    
+    loader.load("./meshes/ruins31.js", handler);
+    loader.load("./meshes/ruins33.js", handler);
+    loader.load("./meshes/ruins34.js", handler); 
+    loader.load("./meshes/ruins35.js", handler);
 
 
 

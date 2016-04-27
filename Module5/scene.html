@@ -16,8 +16,10 @@
 	   float angle;
 	   float distance;
 	   float exponent;
+	   float decay;
+	   float intensity;
     };
-
+	
     // global ambient
     uniform vec4  u_ambient;
 
@@ -32,27 +34,58 @@
 	
 	//Ambient light 
 	varying vec4 ambientLight;
+	//Spotlight
+	varying vec3 spotLightPosition;
+	varying vec4 spotLightColor;
+	varying vec3 spotLightTarget;
+	varying float spotLightAngle;
+	varying float spotLightDistance;
+	varying float spotLightExponent;
+	varying float spotLightDecay;
+	varying float spotLightIntensity;
+	
 	//Directional light
-	varying vec3 directLightPosition;
+	varying vec3 directLightDirection;
 	varying vec4 directLightColor; 	
 	
 	//Normal of this vertex
 	varying vec3 outNormal;
+	
+	//Vertex position in world space
+	varying vec3 wcPos;
 
 
     void main() {
 
 		v_color = vec4(1);
-		//Normalize light position, we can do it here because the position of light won't change
-		directLightPosition = normalize(dirlight.pos);
+		
+		//Normalize directional light position, we can do it here because the position of light won't change
+		directLightDirection = normalize(dirlight.pos);
 		directLightColor = dirlight.color;
 		
+		//Spotlight
+		spotLightPosition = spotlight.pos;
+		spotLightColor = spotlight.color;
+		spotLightTarget = spotlight.target;
+		spotLightAngle = spotlight.angle;
+		spotLightDistance = spotlight.distance;
+		spotLightExponent = spotlight.exponent;
+		spotLightDecay = spotlight.decay;
+		spotLightIntensity = spotlight.intensity;
+		
+		//Ambient light
 		ambientLight = u_ambient;
 		
         // pass texcoords
         v_uv    = uv;
-		// Normalize by using world coordinates
-		outNormal = normalize(modelMatrix * vec4(normal, 1.0)).xyz;
+		// Normalize by using world coordinates, modelMatrix means objects matrices in world coordinates
+		outNormal = normalize(modelMatrix * vec4(normal, 0.0)).xyz;
+		
+		//wcPos = normalMatrix * position;
+		//wcPos = vec3(modelViewMatrix).xyz * position;
+		
+		wcPos = vec3(vec3(modelMatrix).xyz * position);
+		
         // compute vertex position 
         gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1);
     
@@ -61,7 +94,7 @@
   </script>
   <!-- fragment shader for custom lighting --->
   <script id="light-fs" type="x-shader/x-fragment">
-
+	
     uniform sampler2D map;
 
     varying vec2 v_uv;
@@ -70,25 +103,68 @@
 	//Ambient light 
 	varying vec4 ambientLight;
 	
-	//Directional light
+	//Spotlight
+	varying vec3 spotLightPosition;
+	varying vec4 spotLightColor;
+	varying vec3 spotLightTarget;
+	varying float spotLightAngle;
+	varying float spotLightDistance;
+	varying float spotLightExponent;
+	varying float spotLightDecay;
+	varying float spotLightIntensity;
 	
-	varying vec3 directLightPosition;
+	//Directional light
+	varying vec3 directLightDirection;
 	varying vec4 directLightColor; 	
 	
 	//Original normal according to world coordinates
 	varying vec3 outNormal;
+	
+	//Vertex position in world space
+	varying vec3 wcPos;
 
     
     void main(){
 		//Variable in which we store the computed color
 		vec4 LightAmount;
+		//Spotlight variable
+		vec4 spotLightColorAmount = vec4(0.0,0.0,0.0,0.0);
+		//Spot effect variable
+		float spotEffect;
+		//Attenuation variable
+		float att;
 		//Normalized value in this fragment
 		vec3 fragmentNormal = normalize(outNormal);	
+		//Spotlight direction compared to fragment position
+		vec3 DirectionToFragment = vec3(spotLightPosition - wcPos);
+		
+		float dist = length(DirectionToFragment);
+		
+		// Calculate the dot product
+		float NdotL = max(dot(fragmentNormal, normalize(DirectionToFragment)), 0.0);
+		
+		//Spotlight direction
+		vec3 spotLightDirection = spotLightPosition - spotLightTarget;
+		
+		if(NdotL > 0.0){
+		
+			spotEffect = dot(normalize(spotLightDirection), (-DirectionToFragment));
+			
+			if(spotEffect > spotLightAngle){
+				if(dist > 0.0 && dist <= spotLightDistance){
+					spotEffect = pow(spotEffect, spotLightExponent);
+					att = 1.0 / ((1.0 + 0.0 * dist + (dist * dist * spotLightDecay)));
+					spotLightColorAmount = spotLightColor * att;
+				}
+			}
+			
+		}
+		
 		
 		//Directional lights intensity
-		float intensity = max(dot(fragmentNormal, directLightPosition), 0.0);
+		float intensity = max(dot(fragmentNormal, directLightDirection), 0.0);
 
-		LightAmount = (intensity * directLightColor) + ambientLight;
+		LightAmount = (intensity * directLightColor) + ambientLight + spotLightColorAmount;
 		
 		
 		// combine texel color with received color from vertex shader
