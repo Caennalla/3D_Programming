@@ -64,9 +64,9 @@
 		directLightColor = dirlight.color;
 		
 		//Spotlight
-		spotLightPosition = spotlight.pos;
+		spotLightPosition = (modelViewMatrix * vec4(spotlight.pos, 1.0)).xyz;
 		spotLightColor = spotlight.color;
-		spotLightTarget = spotlight.target;
+		spotLightTarget = (modelViewMatrix * vec4(spotlight.target, 1.0)).xyz;
 		spotLightAngle = spotlight.angle;
 		spotLightDistance = spotlight.distance;
 		spotLightExponent = spotlight.exponent;
@@ -79,12 +79,13 @@
         // pass texcoords
         v_uv    = uv;
 		// Normalize by using world coordinates, modelMatrix means objects matrices in world coordinates
-		outNormal = normalize(modelMatrix * vec4(normal, 0.0)).xyz;
+		//outNormal = normalize(modelMatrix * vec4(normal, 0.0)).xyz;
 		
+		outNormal = normalMatrix * normal;
 		//wcPos = normalMatrix * position;
 		//wcPos = vec3(modelViewMatrix).xyz * position;
 		
-		wcPos = vec3(vec3(modelMatrix).xyz * position);
+		wcPos = (modelViewMatrix * vec4(position, 1.0));
 		
         // compute vertex position 
         gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1);
@@ -151,11 +152,12 @@
 			spotEffect = dot(normalize(spotLightDirection), (-DirectionToFragment));
 			
 			if(spotEffect > spotLightAngle){
-				if(dist > 0.0 && dist <= spotLightDistance){
+				//if(dist > 0.0 && dist <= spotLightDistance){
 					spotEffect = pow(spotEffect, spotLightExponent);
-					att = 1.0 / ((1.0 + 0.0 * dist + (dist * dist * spotLightDecay)));
-					spotLightColorAmount = spotLightColor * att;
-				}
+					//
+					//att = 1.0 / ((1.0 + 0.0 * dist + (dist * dist * spotLightDecay)));
+					spotLightColorAmount = spotLightColor;
+				//}
 			}
 			
 		}
