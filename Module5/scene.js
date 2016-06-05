@@ -100,16 +100,14 @@ $(function(){
 				     intensity,
 				     distance ); 
     spotLight.castShadow = false; 
-    spotLight.position = new THREE.Vector3(-5,1,3);
+    spotLight.position = new THREE.Vector3(1,0.5,2);
 	
-    spotLight.exponent = 50;
-    spotLight.angle = 0.21;
+    spotLight.exponent = 5;
+    spotLight.angle = 0.05;
 	spotLight.decay = 0.1;
 	
-    scene.add( spotLight );
 	
-	var spotLightHelper = new THREE.SpotLightHelper( spotLight );
-	scene.add( spotLightHelper );
+    scene.add( spotLight );
 
     // create cube  material
     var material =
@@ -187,8 +185,7 @@ $(function(){
 				// Target vector for spotlight
 				"spotlight.target":{
 					type: 'v3',
-					//It is pointing to 0,0,0
-					value: new THREE.Vector3(0,0,0)
+					value: new THREE.Vector3(1,0,2)
 					
 				},
 				// Decay value for spotlight
@@ -201,6 +198,11 @@ $(function(){
 				"spotlight.intensity":{
 					type: "f",
 					value: intensity
+					
+				},
+				"spotlight.direction":{
+					type: 'v3',
+					value: new THREE.Vector3(0,0,-1)
 					
 				}
 		}
